@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import pw.io.booker.exception.AuthenticationException;
 import pw.io.booker.model.Image;
 import pw.io.booker.model.Reservation;
 import pw.io.booker.model.Service;
@@ -47,31 +49,31 @@ public class ReservationController {
 
   @Transactional(readOnly=true)
   @GetMapping
-  public List<Reservation> getAll() {
+  public List<Reservation> getAll(@RequestHeader ("Authentication-Token")String token) {
     return (List<Reservation>) reservationRepository.findAll();
   }
 
   @Transactional
   @PostMapping
-  public List<Reservation> saveAll(@RequestBody List<Reservation> reservations) {
+  public List<Reservation> saveAll(@RequestHeader ("Authentication-Token")String token, @RequestBody List<Reservation> reservations) throws AuthenticationException {
     for (Reservation reservation : reservations) {
       if (reservationRepository.findById(reservation.getReservationId()).isPresent()) {
-        throw new RuntimeException("Reservations already exist");
+        throw new AuthenticationException("Reservations already exist");
       }
       for (Service service : reservation.getAvailedServiceList()) {
         if (!serviceRepository.findById(service.getServiceId()).isPresent()) {
-          throw new RuntimeException("Service doesn't exist");
+          throw new AuthenticationException("Service doesn't exist");
         }
 
         for (Image image : service.getImages()) {
           if (!imageRepository.findById(image.getImageId()).isPresent()) {
-            throw new RuntimeException("Image doesn't exist");
+            throw new AuthenticationException("Image doesn't exist");
           }
         }
 
 
         if (!customerRepository.findById(reservation.getCustomer().getCustomerId()).isPresent()) {
-          throw new RuntimeException("Customer doesn't exist");
+          throw new AuthenticationException("Customer doesn't exist");
         }
       }
     }
@@ -80,25 +82,25 @@ public class ReservationController {
 
   @Transactional
   @PutMapping
-  public List<Reservation> updateAll(@RequestBody List<Reservation> reservations) {
+  public List<Reservation> updateAll(@RequestHeader ("Authentication-Token")String token, @RequestBody List<Reservation> reservations) throws AuthenticationException {
     for (Reservation reservation : reservations) {
       if (!reservationRepository.findById(reservation.getReservationId()).isPresent()) {
-        throw new RuntimeException("Reservations should exist first");
+        throw new AuthenticationException("Reservations should exist first");
       }
       for (Service service : reservation.getAvailedServiceList()) {
         if (!serviceRepository.findById(service.getServiceId()).isPresent()) {
-          throw new RuntimeException("Service doesn't exist");
+          throw new AuthenticationException("Service doesn't exist");
         }
 
         for (Image image : service.getImages()) {
           if (!imageRepository.findById(image.getImageId()).isPresent()) {
-            throw new RuntimeException("Image doesn't exist");
+            throw new AuthenticationException("Image doesn't exist");
           }
         }
 
 
         if (!customerRepository.findById(reservation.getCustomer().getCustomerId()).isPresent()) {
-          throw new RuntimeException("Customer doesn't exist");
+          throw new AuthenticationException("Customer doesn't exist");
         }
 
         reservation.getAvailedServiceList().add(service);
@@ -110,7 +112,7 @@ public class ReservationController {
 
   @Transactional
   @DeleteMapping
-  public List<Reservation> deleteAll(
+  public List<Reservation> deleteAll(@RequestHeader ("Authentication-Token")String token, 
       @RequestParam("reservationIdList") List<Integer> reservationIdList) {
     List<Reservation> reservationList =
         (List<Reservation>) reservationRepository.findAllById(reservationIdList);
@@ -120,31 +122,31 @@ public class ReservationController {
 
   @Transactional(readOnly=true)
   @GetMapping("/{reservationId}")
-  public Reservation getReservation(@PathVariable("reservationId") int reservationId) {
+  public Reservation getReservation(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId) {
     return reservationRepository.findById(reservationId).get();
   }
 
   @Transactional
   @PutMapping("/{reservationId}")
-  public Reservation updateReservation(@PathVariable("reservationId") int reservationId,
-      @RequestBody Reservation reservation) {
+  public Reservation updateReservation(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId,
+      @RequestBody Reservation reservation) throws AuthenticationException {
     if (!reservationRepository.findById(reservation.getReservationId()).isPresent()) {
-      throw new RuntimeException("Reservation should exist first");
+      throw new AuthenticationException("Reservation should exist first");
     }
     for (Service service : reservation.getAvailedServiceList()) {
       if (!serviceRepository.findById(service.getServiceId()).isPresent()) {
-        throw new RuntimeException("Service doesn't exist");
+        throw new AuthenticationException("Service doesn't exist");
       }
 
       for (Image image : service.getImages()) {
         if (!imageRepository.findById(image.getImageId()).isPresent()) {
-          throw new RuntimeException("Image doesn't exist");
+          throw new AuthenticationException("Image doesn't exist");
         }
       }
 
 
       if (!customerRepository.findById(reservation.getCustomer().getCustomerId()).isPresent()) {
-        throw new RuntimeException("Customer doesn't exist");
+        throw new AuthenticationException("Customer doesn't exist");
       }
 
     }
@@ -154,7 +156,7 @@ public class ReservationController {
 
   @Transactional
   @DeleteMapping("/{reservationId}")
-  public Reservation deleteReservation(@PathVariable("reservationId") int reservationId) {
+  public Reservation deleteReservation(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId) {
     Reservation reservation = reservationRepository.findById(reservationId).get();
     reservationRepository.delete(reservation);
     return reservation;

@@ -1,0 +1,8 @@
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:23. - After the execution: List pw.io.booker.controller.CustomerController.getAll(String)
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:23. - After the execution (Method): getAll
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:39. - After the execution: List pw.io.booker.controller.CustomerController.getAll(String)
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:39. - After the execution (Method): getAll
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:59. - Before the execution: List pw.io.booker.controller.CustomerController.getAll(String)
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:59. - Before the execution(Method): getAll
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:59. - After the execution: List pw.io.booker.controller.CustomerController.getAll(String)
+ INFO pw.io.booker.aspect.AuthenticationAspect 03 Sep 2018 17:24:59. - After the execution (Method): getAll

@@ -1,10 +1,15 @@
 package pw.io.booker.model;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.OneToOne;
-
+@Entity
 public class Authentication {
+	@Id
+	private int tokenId;
 	private String token;
-	@OneToOne
+	@OneToOne(cascade = CascadeType.PERSIST)
 	private Customer customer;
 	
 	public String getToken() {

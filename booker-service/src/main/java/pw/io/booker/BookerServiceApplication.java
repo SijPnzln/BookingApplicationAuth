@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class BookerServiceApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(BookerServiceApplication.class, args);
+	  SpringApplication.run(BookerServiceApplication.class, args);
   }
 
   @Bean

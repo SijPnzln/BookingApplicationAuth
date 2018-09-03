@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import pw.io.booker.exception.AuthenticationException;
 import pw.io.booker.model.Feedback;
 import pw.io.booker.model.Reservation;
 import pw.io.booker.repo.FeedbackRepository;
@@ -35,13 +37,13 @@ public class FeedbackController {
 
   @Transactional(readOnly=true)
   @GetMapping
-  public List<Feedback> getFeedback(@PathVariable("reservationId") int reservationId) {
+  public List<Feedback> getFeedback(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId) {
     return reservationRepository.findById(reservationId).get().getFeedbacks();
   }
 
   @Transactional
   @PostMapping
-  public List<Feedback> saveFeedback(@PathVariable("reservationId") int reservationId,
+  public List<Feedback> saveFeedback(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId,
       @RequestBody List<Feedback> feedbacks) {
     Reservation reservation = reservationRepository.findById(reservationId).get();
     reservation.getFeedbacks().addAll(feedbacks);
@@ -50,11 +52,11 @@ public class FeedbackController {
 
   @Transactional
   @PutMapping
-  public List<Feedback> updateFeedback(@PathVariable("reservationId") int reservationId,
-      @RequestBody List<Feedback> feedbacks) {
+  public List<Feedback> updateFeedback(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId,
+      @RequestBody List<Feedback> feedbacks) throws AuthenticationException {
     for (Feedback feedback : feedbacks) {
       if(!feedbackRepository.findById(feedback.getFeedbackId()).isPresent()) {
-        throw new RuntimeException("Feedback should exist first");
+        throw new AuthenticationException("Feedback should exist first");
       }
     }
     return (List<Feedback>) feedbackRepository.saveAll(feedbacks);
@@ -62,7 +64,7 @@ public class FeedbackController {
 
   @Transactional
   @DeleteMapping
-  public List<Feedback> deleteFeedback(@PathVariable("reservationId") int reservationId,
+  public List<Feedback> deleteFeedback(@RequestHeader ("Authentication-Token")String token, @PathVariable("reservationId") int reservationId,
       @RequestParam("feedbackIdList") List<Integer> feedBackIdList) {
     List<Feedback> feedbacks = (List<Feedback>) feedbackRepository.findAllById(feedBackIdList);
     feedbackRepository.deleteAll(feedbacks);

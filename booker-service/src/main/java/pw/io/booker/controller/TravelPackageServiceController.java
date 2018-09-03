@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import pw.io.booker.exception.AuthenticationException;
 import pw.io.booker.model.Service;
 import pw.io.booker.model.TravelPackage;
 import pw.io.booker.repo.ServiceRepository;
@@ -33,17 +35,17 @@ public class TravelPackageServiceController {
   
   @Transactional(readOnly=true)
   @GetMapping
-  public List<Service> getAll(@PathVariable("travelPackageId") int travelPackageId) {
+  public List<Service> getAll(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId) {
     return travelPackageRepository.findById(travelPackageId).get().getAvailableServiceList();
   }
   
   @Transactional
   @PostMapping
-  public List<Service> saveAll(@PathVariable("travelPackageId") int travelPackageId,
-      @RequestBody List<Service> services) {
+  public List<Service> saveAll(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId,
+      @RequestBody List<Service> services) throws AuthenticationException {
     for(Service service : services) {
       if(serviceRepository.findById(service.getServiceId()).isPresent()) {
-        throw new RuntimeException("Services already exist");
+        throw new AuthenticationException("Services already exist");
       }
     }
     TravelPackage travelPackage = travelPackageRepository.findById(travelPackageId).get();
@@ -53,11 +55,11 @@ public class TravelPackageServiceController {
   
   @Transactional
   @PutMapping
-  public List<Service> updateAll(@PathVariable("travelPackageId") int travelPackageId,
-      @RequestBody List<Service> services) {
+  public List<Service> updateAll(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId,
+      @RequestBody List<Service> services) throws AuthenticationException {
     for (Service service: services) {
       if (!serviceRepository.findById(service.getServiceId()).isPresent()) {
-        throw new RuntimeException("Service should exist first");
+        throw new AuthenticationException("Service should exist first");
       }
     }
     return (List<Service>) serviceRepository.saveAll(services);
@@ -65,7 +67,7 @@ public class TravelPackageServiceController {
 
   @Transactional
   @DeleteMapping
-  public List<Service> deleteAll(@PathVariable("travelPackageId") int travelPackageId) {
+  public List<Service> deleteAll(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId) {
     List<Service> availableServiceList =
     travelPackageRepository.findById(travelPackageId).get().getAvailableServiceList();
     serviceRepository.deleteAll(availableServiceList);
@@ -74,20 +76,20 @@ public class TravelPackageServiceController {
 
   @Transactional(readOnly=true)
   @GetMapping("/{serviceId}")
-  public Service getService(@PathVariable("travelPackageId") int travelPackageId,
+  public Service getService(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId,
       @PathVariable("serviceId") int serviceId) {
     return serviceRepository.findById(serviceId).get();
   }
   
   @Transactional
   @PutMapping("/{serviceId}")
-  public Service updateService(@PathVariable("travelPackageId") int travelPackageId,
-      @PathVariable("serviceId") int serviceId, @RequestBody Service service) {
+  public Service updateService(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId,
+      @PathVariable("serviceId") int serviceId, @RequestBody Service service) throws AuthenticationException {
     if(serviceId != service.getServiceId()) {
-      throw new RuntimeException("Id is not the same with the object id");
+      throw new AuthenticationException("Id is not the same with the object id");
     }
     if (!serviceRepository.findById(service.getServiceId()).isPresent()) {
-      throw new RuntimeException("Service should exist first");
+      throw new AuthenticationException("Service should exist first");
     }
     service.setServiceId(serviceId);
     return serviceRepository.save(service);
@@ -95,7 +97,7 @@ public class TravelPackageServiceController {
 
   @Transactional
   @DeleteMapping("/{serviceId}")
-  public Service deleteService(@PathVariable("travelPackageId") int travelPackageId,
+  public Service deleteService(@RequestHeader ("Authentication-Token")String token, @PathVariable("travelPackageId") int travelPackageId,
       @PathVariable("serviceId") int serviceId) {
     Service service = serviceRepository.findById(serviceId).get();
     serviceRepository.deleteById(serviceId);
